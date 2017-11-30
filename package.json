@@ -1,0 +1,19 @@
+{
+  "name": "demo-local-authentication",
+  "version": "0.0.1",
+  "description": "Demo Passport Local Authentication and Bcrypt",
+  "main": "server.js",
+  "scripts": {
+    "start": "node bcrypt.js"
+  },
+  "dependencies": {
+    "express": "^4.16.2",
+    "mongodb": "^2.2.33",
+    "mongoose": "^4.13.5",
+    "body-parser": "^1.18.2",
+    "passport": "^0.4.0",
+    "bcryptjs": "^2.4.3",
+    "passport-local": "^1.0.0"
+  },
+  "license": "MIT"
+} 
