@@ -34,7 +34,7 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-UserSchema.methods.apiRepr = function () {
+UserSchema.methods.serialize = function () {
   return {
     id: this._id,
     username: this.username,
@@ -85,9 +85,12 @@ passport.use(localStrategy);
 const localAuth = passport.authenticate('local', { session: false });
 
 // ===== Protected endpoint =====
-app.post('/api/protected', localAuth, function (req, res) {
+app.post('/api/secret', localAuth, function (req, res) {
   console.log(`${req.user.username} successfully logged in.`);
-  res.json(req.user.apiRepr());
+  res.json( {
+    message: 'Rosebud',
+    username: req.user.username
+  });
 });
 
 // ===== Post '/users' endpoint to save a new User =====
@@ -108,10 +111,15 @@ app.post('/api/users', function (req, res) {
           location: 'username'
         });
       }
-      return UserModel.create({ username, password, firstName, lastName });
+      return UserModel.create({
+        username,
+        password,
+        firstName,
+        lastName
+      });
     })
     .then(user => {
-      return res.status(201).json(user.apiRepr());
+      return res.status(201).json(user.serialize());
     })
     .catch(err => {
       if (err.reason === 'ValidationError') {

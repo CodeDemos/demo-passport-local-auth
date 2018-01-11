@@ -1,32 +1,30 @@
 'use strict';
 /**
  * Bcrypt Demo
- * - Use Bcrypt to hash password
- * - Use Bcrypt to validate passwords
+ * - Use Bcrypt to hash and compare password
  */
 
-var bcrypt = require('bcryptjs');
-
+const bcrypt = require('bcryptjs');
 
 /** Bcrypt using promises */
-bcrypt.hash('baseball', 10)
-  .then(digest => {
-    console.log('digest:', digest);
+bcrypt.hash('baseball', 12)
+  .then(hash => {
+    console.log('Hashed Password:', hash);
+    return hash;
   });
 
-// bcrypt.compare('baseball', '$2a$10$luAto4OeyAvAadcz7pTA2OekD7OA0ixX.Rj8DWx3sUBVI0ZBmDfw6')
-//   .then(valid => {
-//     console.log(valid);
-//   });
+bcrypt.compare('baseball', '$2a$10$Ui3Zi0g3ZDXIdsnygrYmROyIcREoEWJ.kibWb0ZNC84jloay0XC2S')
+  .then(valid => {
+    console.log(valid);
+  });
 
-/** Bcrypt using promises */
-// bcrypt.hash('baseball', 10)
-//   .then(digest => {
-//     console.log('digest:', digest);
-//     return digest;
+// bcrypt.hash('baseball', 12)
+//   .then(hash => {
+//     console.log('hash:', hash);
+//     return hash;
 //   })
-//   .then(digest => {
-//     return bcrypt.compare('baseball', digest)
+//   .then(hash => {
+//     return bcrypt.compare('baseball', hash)
 //   })
 //   .then(valid => {
 //     console.log(valid);

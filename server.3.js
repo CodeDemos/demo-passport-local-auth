@@ -91,15 +91,16 @@ const localStrategy = new LocalStrategy((username, password, done) => {
 
     });
 });
-
 passport.use(localStrategy);
-
 const localAuth = passport.authenticate('local', { session: false });
 
 // ===== Protected endpoint =====
 app.post('/api/secret', localAuth, function (req, res) {
   console.log(`${req.user.username} successfully logged in.`);
-  res.json({ message: 'Rosebud' });
+  res.json( {
+    message: 'Rosebud',
+    username: req.user.username
+  });
 });
 
 // ===== Public endpoint =====
@@ -128,17 +129,17 @@ app.post('/api/users', function (req, res) {
       // if no existing user, hash password
       return UserModel.hashPassword(password);
     })
-    .then(digest => {
+    .then(hash => {
       return UserModel
         .create({
           username,
-          password: digest,
+          password: hash,
           firstName,
           lastName
         });
     })
     .then(user => {
-      return res.status(201).json(user.apiRepr());
+      return res.status(201).json(user.serialize());
     })
     .catch(err => {
       if (err.reason === 'ValidationError') {
@@ -150,7 +151,7 @@ app.post('/api/users', function (req, res) {
 
 app.get('/:id', (req, res) => {
   return UserModel.findById(req.params.id)
-    .then(user => res.json(user.apiRepr()))
+    .then(user => res.json(user.serialize()))
     .catch(err => res.status(500).json({ message: 'Internal server error' }));
 });
 

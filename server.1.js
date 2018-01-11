@@ -32,15 +32,17 @@ const localStrategy = new LocalStrategy((username, password, done) => {
     done(err);
   }
 });
-// console.log('strategy name', localStrategy.name);
 
 passport.use(localStrategy);
 const localAuth = passport.authenticate('local', { session: false });
 
 // ===== Protected endpoint =====
-app.post('/api/protected', localAuth, function (req, res) {
+app.post('/api/secret', localAuth, function (req, res) {
   console.log(`${req.user.username} successfully logged in.`);
-  res.json(req.user);
+  res.json( {
+    message: 'Rosebud',
+    username: req.user.username
+  });
 });
 
 app.listen(process.env.PORT || 8080, function () {
