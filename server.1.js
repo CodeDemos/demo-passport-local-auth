@@ -5,15 +5,12 @@
  */
 
 const express = require('express');
-const bodyParser = require('body-parser');
-
 const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
 
-
 const app = express();
 app.use(express.static('public'));
-app.use(bodyParser.json());
+app.use(express.json());
 
 // ===== Define and create a strategy =====
 const localStrategy = new LocalStrategy((username, password, done) => {
@@ -35,8 +32,7 @@ const localStrategy = new LocalStrategy((username, password, done) => {
     done(err);
   }
 });
-
-console.log('strategy name', localStrategy.name);
+// console.log('strategy name', localStrategy.name);
 
 passport.use(localStrategy);
 const localAuth = passport.authenticate('local', { session: false });
@@ -47,11 +43,6 @@ app.post('/api/protected', localAuth, function (req, res) {
   res.json(req.user);
 });
 
-// ===== Public endpoint =====
-app.get('/api/public', function (req, res) {
-  res.send('Hello World!');
-});
-
-app.listen(process.env.PORT, () => {
-  console.log(`app listening on port ${process.env.PORT}`);
+app.listen(process.env.PORT || 8080, function () {
+  console.info(`Server listening on ${this.address().port}`);
 });

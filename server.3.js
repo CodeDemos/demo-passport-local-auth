@@ -6,18 +6,19 @@
  */
 
 const express = require('express');
-const bodyParser = require('body-parser');
 
 const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
 const bcrypt = require('bcryptjs');
+
+const { PORT, DATABASE_URL } = require('./config');
 
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 const app = express();
 app.use(express.static('public'));
-app.use(bodyParser.json());
+app.use(express.json());
 
 // ===== Define UserSchema & UserModel =====
 const UserSchema = new mongoose.Schema({
@@ -34,7 +35,7 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-UserSchema.methods.apiRepr = function () {
+UserSchema.methods.serialize = function () {
   return {
     id: this._id,
     username: this.username,
@@ -43,11 +44,11 @@ UserSchema.methods.apiRepr = function () {
   };
 };
 
-UserSchema.methods.validatePassword = function(password) {
+UserSchema.methods.validatePassword = function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-UserSchema.statics.hashPassword = function(password) {
+UserSchema.statics.hashPassword = function (password) {
   return bcrypt.hash(password, 10);
 };
 
@@ -59,16 +60,16 @@ const localStrategy = new LocalStrategy((username, password, done) => {
   UserModel
     .findOne({ username })
     .then(results => {
-      user = results;    
-      
+      user = results;
+
       if (!user) {
         return Promise.reject({
           reason: 'LoginError',
           message: 'Incorrect username',
           location: 'username'
         });
-      }    
-    
+      }
+
       return user.validatePassword(password);
     })
     .then(isValid => {
@@ -79,7 +80,7 @@ const localStrategy = new LocalStrategy((username, password, done) => {
           location: 'password'
         });
       }
-      return done(null, user);    
+      return done(null, user);
     })
     .catch(err => {
       if (err.reason === 'LoginError') {
@@ -96,24 +97,24 @@ passport.use(localStrategy);
 const localAuth = passport.authenticate('local', { session: false });
 
 // ===== Protected endpoint =====
-app.post('/api/protected', localAuth, function (req, res) {
+app.post('/api/secret', localAuth, function (req, res) {
   console.log(`${req.user.username} successfully logged in.`);
-  res.json( req.user.apiRepr() );
-}); 
+  res.json({ message: 'Rosebud' });
+});
 
 // ===== Public endpoint =====
 app.get('/api/public', function (req, res) {
-  res.send( 'Hello World!' );
+  res.send('Hello World!');
 });
 
 // ===== Post '/users' endpoint to save a new User =====
 // NOTE: validation and some error handling removed for brevity
-app.post('/api/users', function(req, res) {
+app.post('/api/users', function (req, res) {
   // NOTE: validation removed for brevity
-  let {username, password, firstName, lastName} = req.body;
+  let { username, password, firstName, lastName } = req.body;
 
   return UserModel
-    .find({username})
+    .find({ username })
     .count()
     .then(count => {
       if (count > 0) {
@@ -130,7 +131,7 @@ app.post('/api/users', function(req, res) {
     .then(digest => {
       return UserModel
         .create({
-          username, 
+          username,
           password: digest,
           firstName,
           lastName
@@ -143,13 +144,19 @@ app.post('/api/users', function(req, res) {
       if (err.reason === 'ValidationError') {
         return res.status(err.code).json(err);
       }
-      res.status(500).json({code: 500, message: 'Internal server error'});
+      res.status(500).json({ code: 500, message: 'Internal server error' });
     });
 });
 
-mongoose.connect(process.env.DATABASE_URL, { useMongoClient: true })
+app.get('/:id', (req, res) => {
+  return UserModel.findById(req.params.id)
+    .then(user => res.json(user.apiRepr()))
+    .catch(err => res.status(500).json({ message: 'Internal server error' }));
+});
+
+mongoose.connect(DATABASE_URL, { useMongoClient: true })
   .then(() => {
-    app.listen(process.env.PORT, () => {
-      console.log(`app listening on port ${process.env.PORT}`);
+    app.listen(PORT, function () {
+      console.log(`app listening on port ${this.address().port}`);
     });
   }); 

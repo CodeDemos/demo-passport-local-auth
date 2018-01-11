@@ -6,17 +6,18 @@
  */
 
 const express = require('express');
-const bodyParser = require('body-parser');
 
 const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
+
+const {PORT, DATABASE_URL} = require('./config');
 
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 const app = express();
 app.use(express.static('public'));
-app.use(bodyParser.json());
+app.use(express.json());
 
 // ===== Define UserSchema & UserModel =====
 const UserSchema = new mongoose.Schema({
@@ -89,11 +90,6 @@ app.post('/api/protected', localAuth, function (req, res) {
   res.json(req.user.apiRepr());
 });
 
-// ===== Public endpoint =====
-app.get('/api/public', function (req, res) {
-  res.send('Hello World!');
-});
-
 // ===== Post '/users' endpoint to save a new User =====
 // saves a user with plain-text password to the DB
 app.post('/api/users', function (req, res) {
@@ -125,9 +121,9 @@ app.post('/api/users', function (req, res) {
     });
 });
 
-mongoose.connect(process.env.DATABASE_URL, { useMongoClient: true })
+mongoose.connect(DATABASE_URL, { useMongoClient: true })
   .then(() => {
-    app.listen(process.env.PORT, () => {
-      console.log(`app listening on port ${process.env.PORT}`);
+    app.listen(PORT, function () {
+      console.log(`Server listening on port ${this.address().port}`);
     });
   }); 
