@@ -21,7 +21,7 @@ app.use(express.static('public'));
 app.use(express.json());
 
 // ===== Define UserSchema & UserModel =====
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   firstName: { type: String, default: '' },
   lastName: { type: String, default: '' },
   username: {
@@ -35,7 +35,7 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-UserSchema.methods.serialize = function () {
+userSchema.methods.serialize = function () {
   return {
     id: this._id,
     username: this.username,
@@ -44,21 +44,20 @@ UserSchema.methods.serialize = function () {
   };
 };
 
-UserSchema.methods.validatePassword = function (password) {
+userSchema.methods.validatePassword = function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-UserSchema.statics.hashPassword = function (password) {
+userSchema.statics.hashPassword = function (password) {
   return bcrypt.hash(password, 10);
 };
 
-var UserModel = mongoose.model('User', UserSchema);
+var User = mongoose.model('User', userSchema);
 
 // ===== Define and create basicStrategy =====
 const localStrategy = new LocalStrategy((username, password, done) => {
   let user;
-  UserModel
-    .findOne({ username })
+  User.findOne({ username })
     .then(results => {
       user = results;
 
@@ -97,7 +96,7 @@ const localAuth = passport.authenticate('local', { session: false });
 // ===== Protected endpoint =====
 app.post('/api/secret', localAuth, function (req, res) {
   console.log(`${req.user.username} successfully logged in.`);
-  res.json( {
+  res.json({
     message: 'Rosebud',
     username: req.user.username
   });
@@ -114,8 +113,7 @@ app.post('/api/users', function (req, res) {
   // NOTE: validation removed for brevity
   let { username, password, firstName, lastName } = req.body;
 
-  return UserModel
-    .find({ username })
+  return User.find({ username })
     .count()
     .then(count => {
       if (count > 0) {
@@ -127,16 +125,15 @@ app.post('/api/users', function (req, res) {
         });
       }
       // if no existing user, hash password
-      return UserModel.hashPassword(password);
+      return User.hashPassword(password);
     })
     .then(hash => {
-      return UserModel
-        .create({
-          username,
-          password: hash,
-          firstName,
-          lastName
-        });
+      return User.create({
+        username,
+        password: hash,
+        firstName,
+        lastName
+      });
     })
     .then(user => {
       return res.status(201).json(user.serialize());
@@ -150,7 +147,7 @@ app.post('/api/users', function (req, res) {
 });
 
 app.get('/:id', (req, res) => {
-  return UserModel.findById(req.params.id)
+  return User.findById(req.params.id)
     .then(user => res.json(user.serialize()))
     .catch(err => res.status(500).json({ message: 'Internal server error' }));
 });

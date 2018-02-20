@@ -1,5 +1,5 @@
 {
-  "name": "demo-local-authentication",
+  "name": "demo-local-auth",
   "version": "0.0.1",
   "description": "Demo Passport Local Authentication and Bcrypt",
   "main": "server.js",
@@ -9,7 +9,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "express": "^4.16.2",
-    "mongoose": "^4.13.9",
+    "mongoose": "^5.0.6",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0"
   },

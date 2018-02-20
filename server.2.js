@@ -19,8 +19,8 @@ const app = express();
 app.use(express.static('public'));
 app.use(express.json());
 
-// ===== Define UserSchema & UserModel =====
-const UserSchema = new mongoose.Schema({
+// ===== Define userSchema & User =====
+const userSchema = new mongoose.Schema({
   firstName: { type: String, default: '' },
   lastName: { type: String, default: '' },
   username: {
@@ -34,7 +34,7 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-UserSchema.methods.serialize = function () {
+userSchema.methods.serialize = function () {
   return {
     id: this._id,
     username: this.username,
@@ -43,15 +43,15 @@ UserSchema.methods.serialize = function () {
   };
 };
 
-UserSchema.methods.validatePassword = function (password) {
+userSchema.methods.validatePassword = function (password) {
   return password === this.password;
 };
 
-const UserModel = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', userSchema);
 
 // ===== Define and create basicStrategy =====
 const localStrategy = new LocalStrategy((username, password, done) => {
-  UserModel
+  User
     .findOne({ username })
     .then(user => {
       if (!user) {
@@ -99,7 +99,7 @@ app.post('/api/users', function (req, res) {
   // NOTE: validation removed for brevity
   let { username, password, firstName, lastName } = req.body;
 
-  return UserModel
+  return User
     .find({ username })
     .count()
     .then(count => {
@@ -111,7 +111,7 @@ app.post('/api/users', function (req, res) {
           location: 'username'
         });
       }
-      return UserModel.create({
+      return User.create({
         username,
         password,
         firstName,
