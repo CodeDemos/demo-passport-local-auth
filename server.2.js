@@ -6,11 +6,10 @@
  */
 
 const express = require('express');
-
 const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
 
-const {PORT, DATABASE_URL} = require('./config');
+const { PORT, DATABASE_URL } = require('./config');
 
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -34,14 +33,14 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-userSchema.methods.serialize = function () {
-  return {
-    id: this._id,
-    username: this.username,
-    firstName: this.firstName,
-    lastName: this.lastName
-  };
-};
+userSchema.set('toObject', {
+  transform: function (doc, ret) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+    delete ret.password;
+  }
+});
 
 userSchema.methods.validatePassword = function (password) {
   return password === this.password;
@@ -87,7 +86,7 @@ const localAuth = passport.authenticate('local', { session: false });
 // ===== Protected endpoint =====
 app.post('/api/secret', localAuth, function (req, res) {
   console.log(`${req.user.username} successfully logged in.`);
-  res.json( {
+  res.json({
     message: 'Rosebud',
     username: req.user.username
   });
@@ -119,7 +118,7 @@ app.post('/api/users', function (req, res) {
       });
     })
     .then(user => {
-      return res.status(201).json(user.serialize());
+      return res.status(201).json(user);
     })
     .catch(err => {
       if (err.reason === 'ValidationError') {
@@ -129,9 +128,9 @@ app.post('/api/users', function (req, res) {
     });
 });
 
-mongoose.connect(DATABASE_URL, { useMongoClient: true })
+mongoose.connect(DATABASE_URL)
   .then(() => {
     app.listen(PORT, function () {
       console.log(`Server listening on port ${this.address().port}`);
     });
-  }); 
+  });

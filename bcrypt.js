@@ -7,7 +7,7 @@
 const bcrypt = require('bcryptjs');
 
 /** Bcrypt using promises */
-bcrypt.hash('baseball', 12)
+bcrypt.hash('baseball', 10)
   .then(hash => {
     console.log('Hashed Password:', hash);
     return hash;

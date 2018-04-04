@@ -35,14 +35,14 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-userSchema.methods.serialize = function () {
-  return {
-    id: this._id,
-    username: this.username,
-    firstName: this.firstName,
-    lastName: this.lastName
-  };
-};
+userSchema.set('toObject', {
+  transform: function (doc, ret) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+    delete ret.password;
+  }
+});
 
 userSchema.methods.validatePassword = function (password) {
   return bcrypt.compare(password, this.password);
@@ -136,7 +136,7 @@ app.post('/api/users', function (req, res) {
       });
     })
     .then(user => {
-      return res.status(201).json(user.serialize());
+      return res.status(201).json(user);
     })
     .catch(err => {
       if (err.reason === 'ValidationError') {
@@ -148,13 +148,13 @@ app.post('/api/users', function (req, res) {
 
 app.get('/:id', (req, res) => {
   return User.findById(req.params.id)
-    .then(user => res.json(user.serialize()))
+    .then(user => res.json(user))
     .catch(err => res.status(500).json({ message: 'Internal server error' }));
 });
 
-mongoose.connect(DATABASE_URL, { useMongoClient: true })
+mongoose.connect(DATABASE_URL)
   .then(() => {
     app.listen(PORT, function () {
       console.log(`app listening on port ${this.address().port}`);
     });
-  }); 
+  });
