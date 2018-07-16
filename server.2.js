@@ -12,7 +12,6 @@ const { Strategy: LocalStrategy } = require('passport-local');
 const { PORT, DATABASE_URL } = require('./config');
 
 const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
 
 const app = express();
 app.use(express.static('public'));

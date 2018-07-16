@@ -14,7 +14,6 @@ const bcrypt = require('bcryptjs');
 const { PORT, DATABASE_URL } = require('./config');
 
 const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
 
 const app = express();
 app.use(express.static('public'));
@@ -44,12 +43,12 @@ userSchema.set('toObject', {
   }
 });
 
-userSchema.methods.validatePassword = function (password) {
-  return bcrypt.compare(password, this.password);
-};
-
 userSchema.statics.hashPassword = function (password) {
   return bcrypt.hash(password, 10);
+};
+
+userSchema.methods.validatePassword = function (password) {
+  return bcrypt.compare(password, this.password);
 };
 
 var User = mongoose.model('User', userSchema);

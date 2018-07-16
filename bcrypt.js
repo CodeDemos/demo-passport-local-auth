@@ -13,11 +13,11 @@ bcrypt.hash('baseball', 10)
     return hash;
   });
 
-bcrypt.compare('football', '$2a$12$Cz13b74Y75F2HMWd5ybs1uyr8TFI50fnEsyyNwhF/K810pZ3GMNBm')
+bcrypt.compare('baseball', '$2a$10$1IY7WTWzL4aRhE0LrOEpduBWDJ6FtN6WHcfSejSPc05De3o4Pi96u')
   .then(valid => {
     console.log(valid);
   });
-
+/*
 bcrypt.hash('baseball', 12)
   .then(hash => {
     console.log('hash:', hash);
@@ -32,3 +32,4 @@ bcrypt.hash('baseball', 12)
   .catch(err => {
     console.error('error', err);
   });
+ */
