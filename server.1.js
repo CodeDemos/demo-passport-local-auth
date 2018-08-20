@@ -6,7 +6,7 @@
 
 const express = require('express');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+const { Strategy: LocalStrategy } = require('passport-local');  // const LocalStrategy = require('passport-local').Strategy;
 
 const app = express();
 app.use(express.static('public'));
