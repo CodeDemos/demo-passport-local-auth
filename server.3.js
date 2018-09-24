@@ -151,7 +151,7 @@ app.get('/:id', (req, res) => {
     .catch(err => res.status(500).json({ message: 'Internal server error' }));
 });
 
-mongoose.connect(DATABASE_URL)
+mongoose.connect(DATABASE_URL, { useNewUrlParser: true })
   .then(() => {
     app.listen(PORT, function () {
       console.log(`app listening on port ${this.address().port}`);

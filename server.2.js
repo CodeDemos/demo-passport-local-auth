@@ -128,7 +128,7 @@ app.post('/api/users', function (req, res) {
     });
 });
 
-mongoose.connect(DATABASE_URL)
+mongoose.connect(DATABASE_URL, { useNewUrlParser: true })
   .then(() => {
     app.listen(PORT, function () {
       console.log(`Server listening on port ${this.address().port}`);
