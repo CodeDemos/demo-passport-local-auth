@@ -9,7 +9,6 @@ const express = require('express');
 const passport = require('passport');
 const mongoose = require('mongoose');
 
-// const LocalStrategy = require('passport-local').Strategy;
 const { Strategy: LocalStrategy } = require('passport-local');
 const bcrypt = require('bcryptjs');
 
@@ -18,6 +17,11 @@ const { PORT, DATABASE_URL } = require('./config');
 const app = express();
 app.use(express.static('public'));
 app.use(express.json());
+
+// ===== Public endpoint =====
+app.get('/api/welcome', function (req, res) {
+  res.json({message: 'Hello!'});
+});
 
 // ===== Define UserSchema & UserModel =====
 const userSchema = new mongoose.Schema({
@@ -97,11 +101,6 @@ app.post('/api/login', localAuth, (req, res) => {
     message: 'Rosebud',
     username: req.user.username
   });
-});
-
-// ===== Public endpoint =====
-app.get('/api/public', (req, res) => {
-  res.send('Hello World!');
 });
 
 // ===== Post '/users' endpoint to save a new User =====

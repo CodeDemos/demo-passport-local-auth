@@ -9,13 +9,18 @@ const express = require('express');
 const passport = require('passport');
 const mongoose = require('mongoose');
 
-// const LocalStrategy = require('passport-local').Strategy;
 const { Strategy: LocalStrategy } = require('passport-local');
+
 const { PORT, DATABASE_URL } = require('./config');
 
 const app = express();
 app.use(express.static('public'));
 app.use(express.json());
+
+// ===== Public endpoint =====
+app.get('/api/welcome', function (req, res) {
+  res.json({message: 'Hello!'});
+});
 
 // ===== Define userSchema & User =====
 const userSchema = new mongoose.Schema({
@@ -136,5 +141,5 @@ app.use((err, req, res, next) => {
 
 mongoose.connect(DATABASE_URL, { useNewUrlParser: true, useCreateIndex: true });
 app.listen(PORT, function () {
-  console.log(`Server listening on port ${this.address().port}`);
+  console.log(`app listening on port ${this.address().port}`);
 });

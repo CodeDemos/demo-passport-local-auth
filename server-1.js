@@ -7,12 +7,18 @@
 const express = require('express');
 const passport = require('passport');
 
-// const LocalStrategy = require('passport-local').Strategy;
 const { Strategy: LocalStrategy } = require('passport-local');
+
+const { PORT } = require('./config');
 
 const app = express();
 app.use(express.static('public'));
 app.use(express.json());
+
+// ===== Public endpoint =====
+app.get('/api/welcome', function (req, res) {
+  res.json({message: 'Hello!'});
+});
 
 // ===== Define and create a strategy =====
 const localStrategy = new LocalStrategy((username, password, done) => {
@@ -61,6 +67,7 @@ app.use((err, req, res, next) => {
   res.json({ message: err.message });
 });
 
-app.listen(process.env.PORT || 8080, function () {
-  console.info(`Server listening on ${this.address().port}`);
+app.listen(PORT, function () {
+  console.log(`app listening on port ${this.address().port}`);
 });
+
