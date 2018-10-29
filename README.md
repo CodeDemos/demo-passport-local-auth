@@ -1,5 +1,9 @@
 # Local Authentication
 
+## Step 0: Gatekeeper custom middleware
+
+- Simple middleware to demonstrate protecting an endpoint
+
 ## Step 1: Hardcoded plain-text passwords
 
 - Instantiate a strategy and implement password comparison
@@ -18,19 +22,3 @@
 ## Bonus file
 
 - bcrypt.js is a standalone demo of .hash() and .compare()
-
-## CURLs
-
-```sh
-curl -X POST http://localhost:8080/api/login -H 'Content-Type: application/json'  -d '{
-"username": "bobuser",
-"password": "baseball"
-}'
-```
-
-```sh
-curl -X POST http://localhost:8080/api/users -H 'Content-Type: application/json'  -d '{
-"username": "kateuser",
-"password": "football"
-}'
-```
