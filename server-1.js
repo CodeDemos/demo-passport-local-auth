@@ -14,6 +14,7 @@ app.use(express.json());
 
 // ===== Define and create a strategy =====
 const localStrategy = new LocalStrategy((username, password, done) => {
+  console.log(username, password);
   try {
 
     if (username !== 'bobuser') {
@@ -27,6 +28,7 @@ const localStrategy = new LocalStrategy((username, password, done) => {
     }
 
     const user = { username, password };
+    console.log(user);
     done(null, user);
 
   } catch (err) {
@@ -38,16 +40,16 @@ passport.use(localStrategy);
 const localAuth = passport.authenticate('local', { session: false, failWithError: true });
 
 // ===== Protected endpoint =====
-app.post('/api/secret', localAuth, function (req, res) {
+app.post('/api/login', localAuth, (req, res) => {
   console.log(`${req.user.username} ${req.user.password} successfully logged in.`);
-  res.json( {
+  res.json({
     message: 'Rosebud',
     username: req.user.username
   });
 });
 
 // Catch-all 404
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   const err = new Error('Not Found');
   err.status = 404;
   next(err);
@@ -55,7 +57,7 @@ app.use(function (req, res, next) {
 
 // Catch-all Error handler
 // Add NODE_ENV check to prevent stacktrace leak
-app.use(function (err, req, res, next) {
+app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.json({
     message: err.message,

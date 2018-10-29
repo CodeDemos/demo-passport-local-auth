@@ -7,7 +7,7 @@
     "type": "git"
   },
   "scripts": {
-    "start": "node server.2.js"
+    "start": "node server-1.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

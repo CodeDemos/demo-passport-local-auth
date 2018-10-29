@@ -10,7 +10,7 @@ $(() => {
     const password = el.find('[name=password]').val().trim();
     el.trigger('reset');
 
-    return fetch('/api/secret', {
+    return fetch('/api/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
