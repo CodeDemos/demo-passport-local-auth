@@ -7,11 +7,11 @@
 
 const express = require('express');
 const passport = require('passport');
-const { Strategy: LocalStrategy } = require('passport-local');
-
-const { PORT, DATABASE_URL } = require('./config');
-
 const mongoose = require('mongoose');
+
+// const LocalStrategy = require('passport-local').Strategy;
+const { Strategy: LocalStrategy } = require('passport-local');
+const { PORT, DATABASE_URL } = require('./config');
 
 const app = express();
 app.use(express.static('public'));
@@ -19,8 +19,7 @@ app.use(express.json());
 
 // ===== Define userSchema & User =====
 const userSchema = new mongoose.Schema({
-  firstName: { type: String, default: '' },
-  lastName: { type: String, default: '' },
+  fullName: { type: String, default: '' },
   username: {
     type: String,
     required: true,
@@ -37,7 +36,7 @@ userSchema.set('toJSON', {
   transform: (doc, result) => {
     delete result._id;
     delete result.__v;
-    delete ret.password;
+    delete result.password;
   }
 });
 
@@ -46,12 +45,11 @@ userSchema.methods.validatePassword = function (incomingPassword) {
   return incomingPassword === user.password;
 };
 
-const User = mongoose.model('User', userSchema);
+const UserModel = mongoose.model('User', userSchema);
 
 // ===== Define and create basicStrategy =====
 const localStrategy = new LocalStrategy((username, password, done) => {
-  User
-    .findOne({ username })
+  UserModel.findOne({ username })
     .then(user => {
       if (!user) {
         return Promise.reject({
@@ -70,7 +68,8 @@ const localStrategy = new LocalStrategy((username, password, done) => {
         });
       }
       return done(null, user);
-    }).catch(err => {
+    })
+    .catch(err => {
       if (err.reason === 'LoginError') {
         return done(null, false);
       }
@@ -92,12 +91,11 @@ app.post('/api/login', localAuth, (req, res) => {
 
 // ===== Post '/users' endpoint to save a new User =====
 // saves a user with plain-text password to the DB
-app.post('/api/users', (req, res) => {
+app.post('/api/users', (req, res, next) => {
   // NOTE: validation removed for brevity
-  let { username, password, firstName, lastName } = req.body;
+  let { username, password, fullName } = req.body;
 
-  return User
-    .find({ username })
+  UserModel.find({ username })
     .count()
     .then(count => {
       if (count > 0) {
@@ -108,27 +106,35 @@ app.post('/api/users', (req, res) => {
           location: 'username'
         });
       }
-      return User.create({
+      return UserModel.create({
         username,
         password,
-        firstName,
-        lastName
+        fullName
       });
     })
-    .then(user => {
-      return res.status(201).json(user);
-    })
+    .then(user => res.status(201).json(user))
     .catch(err => {
       if (err.reason === 'ValidationError') {
-        return res.status(err.code).json(err);
+        return next(err);
       }
-      res.status(500).json({ code: 500, message: 'Internal server error' });
+      next({ code: 500, message: 'Internal server error' });
     });
 });
 
-mongoose.connect(DATABASE_URL, { useNewUrlParser: true })
-  .then(() => {
-    app.listen(PORT, function () {
-      console.log(`Server listening on port ${this.address().port}`);
-    });
-  });
+// Catch-all 404
+app.use((req, res, next) => {
+  const err = new Error('Not Found');
+  err.code = 404;
+  next(err);
+});
+
+// Catch-all Error handler
+app.use((err, req, res, next) => {
+  res.status(err.code || 500);
+  res.json({ message: err.message });
+});
+
+mongoose.connect(DATABASE_URL, { useNewUrlParser: true, useCreateIndex: true });
+app.listen(PORT, function () {
+  console.log(`Server listening on port ${this.address().port}`);
+});

@@ -19,8 +19,7 @@ $(() => {
       body: JSON.stringify({ username, password })
     }).then(res => res.json())
       .then(response => {
-        el.find('.secret').empty().append(response.message);
-
+        el.find('.secret-message').empty().append(response.message);
       }).catch(err => {
         console.error('ERROR:', err);
       });

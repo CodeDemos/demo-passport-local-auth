@@ -17,6 +17,7 @@ bcrypt.compare('baseball', '$2a$10$1IY7WTWzL4aRhE0LrOEpduBWDJ6FtN6WHcfSejSPc05De
   .then(valid => {
     console.log(valid);
   });
+
 /*
 bcrypt.hash('baseball', 12)
   .then(hash => {
