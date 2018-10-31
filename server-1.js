@@ -1,13 +1,10 @@
 'use strict';
 /**
- * Step 1
- * Protect endpoint with Passport Local strategy using a **hardcoded** UN/PW
+ * Step 0
+ * Protect aj endpoint with Gatekeep - a custom middleware
  */
 
 const express = require('express');
-const passport = require('passport');
-
-const { Strategy: LocalStrategy } = require('passport-local');
 
 const { PORT } = require('./config');
 
@@ -20,33 +17,35 @@ app.get('/api/welcome', function (req, res) {
   res.json({message: 'Hello!'});
 });
 
-// ===== Define and create a strategy =====
-const localStrategy = new LocalStrategy((username, password, done) => {
+// ===== Gatekeeper example =====
+function gateKeeper(req, res, next) {
+  const { username, password } = req.body;
   try {
+    if (!username && !password) {
+      console.log('Bad Request');
+      return res.sendStatus(400);
+    }
 
     if (username !== 'bobuser') {
       console.log('Incorrect username');
-      return done(null, false);
+      return res.sendStatus(401);
     }
 
     if (password !== 'baseball') {
       console.log('Incorrect password');
-      return done(null, false);
+      return res.sendStatus(401);
     }
 
-    const user = { username, password };
-    done(null, user);
+    req.user = { username, password };
+    next();
 
   } catch (err) {
-    done(err);
+    next(err);
   }
-});
-
-passport.use(localStrategy);
-const localAuth = passport.authenticate('local', { session: false, failWithError: true });
+}
 
 // ===== Protected endpoint =====
-app.post('/api/login', localAuth, (req, res, next) => {
+app.post('/api/login', gateKeeper, (req, res, next) => {
   console.log(`${req.user.username} ${req.user.password} successfully logged in.`);
   res.json({
     message: 'Rosebud',
@@ -54,20 +53,6 @@ app.post('/api/login', localAuth, (req, res, next) => {
   });
 });
 
-// Catch-all 404
-app.use((req, res, next) => {
-  const err = new Error('Not Found');
-  err.code = 404;
-  next(err);
-});
-
-// Catch-all Error handler
-app.use((err, req, res, next) => {
-  res.status(err.code || 500);
-  res.json({ message: err.message });
-});
-
 app.listen(PORT, function () {
   console.log(`app listening on port ${this.address().port}`);
 });
-

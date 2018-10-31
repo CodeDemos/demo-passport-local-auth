@@ -1,8 +1,8 @@
 'use strict';
 /**
- * Step 2
- * - Create User with plain-text UN/PW and store in DB
- * - Update Basic Strategy to finduser and compare
+ * Step 3
+ * - Add Bcrypt to hash password before saving
+ * - Add Bcrypt to validate passwords when comparing
  */
 
 const express = require('express');
@@ -10,6 +10,7 @@ const passport = require('passport');
 const mongoose = require('mongoose');
 
 const { Strategy: LocalStrategy } = require('passport-local');
+const bcrypt = require('bcryptjs');
 
 const { PORT, DATABASE_URL } = require('./config');
 
@@ -22,7 +23,7 @@ app.get('/api/welcome', function (req, res) {
   res.json({message: 'Hello!'});
 });
 
-// ===== Define userSchema & User =====
+// ===== Define UserSchema & UserModel =====
 const userSchema = new mongoose.Schema({
   fullName: { type: String, default: '' },
   username: {
@@ -45,17 +46,24 @@ userSchema.set('toJSON', {
   }
 });
 
-userSchema.methods.validatePassword = function (incomingPassword) {
-  const user = this; // for clarity
-  return incomingPassword === user.password;
+userSchema.statics.hashPassword = (incomingPassword) => {
+  return bcrypt.hash(incomingPassword, 10);
 };
 
-const UserModel = mongoose.model('User', userSchema);
+userSchema.methods.validatePassword = function (incomingPassword) {
+  const user = this; // for clarity
+  return bcrypt.compare(incomingPassword, user.password);
+};
+
+var UserModel = mongoose.model('User', userSchema);
 
 // ===== Define and create basicStrategy =====
 const localStrategy = new LocalStrategy((username, password, done) => {
+  let user;
   UserModel.findOne({ username })
-    .then(user => {
+    .then(_user => {
+      user = _user;
+
       if (!user) {
         return Promise.reject({
           reason: 'LoginError',
@@ -64,7 +72,9 @@ const localStrategy = new LocalStrategy((username, password, done) => {
         });
       }
 
-      const isValid = user.validatePassword(password);
+      return user.validatePassword(password);
+    })
+    .then(isValid => {
       if (!isValid) {
         return Promise.reject({
           reason: 'LoginError',
@@ -81,7 +91,6 @@ const localStrategy = new LocalStrategy((username, password, done) => {
       return done(err);
     });
 });
-
 passport.use(localStrategy);
 const localAuth = passport.authenticate('local', { session: false });
 
@@ -95,15 +104,15 @@ app.post('/api/login', localAuth, (req, res) => {
 });
 
 // ===== Post '/users' endpoint to save a new User =====
-// saves a user with plain-text password to the DB
+// NOTE: validation and some error handling removed for brevity
 app.post('/api/users', (req, res, next) => {
   // NOTE: validation removed for brevity
   let { username, password, fullName } = req.body;
 
-  UserModel.find({ username })
+  return UserModel.findOne({ username })
     .count()
-    .then(count => {
-      if (count > 0) {
+    .then(user => {
+      if (user) {
         return Promise.reject({
           code: 422,
           reason: 'ValidationError',
@@ -111,9 +120,12 @@ app.post('/api/users', (req, res, next) => {
           location: 'username'
         });
       }
+      return UserModel.hashPassword(password);
+    })
+    .then(digest => {
       return UserModel.create({
         username,
-        password,
+        password: digest,
         fullName
       });
     })
@@ -129,13 +141,13 @@ app.post('/api/users', (req, res, next) => {
 // Catch-all 404
 app.use((req, res, next) => {
   const err = new Error('Not Found');
-  err.code = 404;
+  err.status = 404;
   next(err);
 });
 
 // Catch-all Error handler
 app.use((err, req, res, next) => {
-  res.status(err.code || 500);
+  res.status(err.status || 500);
   res.json({ message: err.message });
 });
 
