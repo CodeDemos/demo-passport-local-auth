@@ -40,4 +40,4 @@ and then run `npm start`
 
 ## Bonus file
 
-* bcrypt.js is a standalone demo of .hash() and .compare()
+* `scratch/bcrypt.js` is a standalone demo of .hash() and .compare()
