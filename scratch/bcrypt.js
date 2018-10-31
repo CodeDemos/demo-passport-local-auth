@@ -7,13 +7,15 @@
 const bcrypt = require('bcryptjs');
 
 /** Bcrypt using promises */
-bcrypt.hash('baseball', 10)
+const pwd = 'football';
+
+bcrypt.hash(pwd, 10)
   .then(hash => {
-    console.log('Hashed Password:', hash);
+    console.log('Hashed Password:', pwd, hash);
     return hash;
   });
 
-bcrypt.compare('baseball', '$2a$10$1IY7WTWzL4aRhE0LrOEpduBWDJ6FtN6WHcfSejSPc05De3o4Pi96u')
+bcrypt.compare(pwd, '$2a$10$1IY7WTWzL4aRhE0LrOEpduBWDJ6FtN6WHcfSejSPc05De3o4Pi96u')
   .then(valid => {
     console.log(valid);
   });
