@@ -1,4 +1,6 @@
-# Local Authentication
+# Demo Passport Local Strategy
+
+[Glitch Demo](https://glitch.com/~demo-passport-local-strategy)
 
 ## How to run each `server-x.js`
 
